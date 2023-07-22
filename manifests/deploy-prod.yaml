@@ -32,7 +32,7 @@ spec:
       - image: app
         ports:
         - name: http1
-          containerPort: 80
+          containerPort: 3001
         resources:
           limits:
             memory: 2048Mi
