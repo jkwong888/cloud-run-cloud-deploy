@@ -31,3 +31,7 @@ override.tf.json
 .vscode/
 
 terraform.tfvars
+
+**/bin
+**/node_modules
+**/dist
