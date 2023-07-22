@@ -1,0 +1,106 @@
+name: deploy preview environment
+
+on:
+  pull_request:
+    types: [ opened, synchronize ]
+    branches:
+      - 'main'
+
+env:
+  IMAGE_PROJECT_ID: jkwng-images 
+  IMAGE_REPO: gcr.io
+  DEV_PROJECT_ID: jkwng-clouddeploy-dev-f112
+  CI_PROJECT_ID: jkwng-clouddeploy-ci-f112
+  REGION: us-central1 # TODO: update Cloud Run service region
+  APP: backend
+  CLOUD_RUN_SERVICE_ACCOUNT: myapp-sa@jkwng-clouddeploy-dev-f112.iam.gserviceaccount.com
+  CLOUD_RUN_CONCURRENCY: 20
+  CLOUD_RUN_VCPU: 1
+  CLOUD_RUN_MEM: 2G
+
+jobs:
+  buildimage:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1033541999083/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: "github-actions@${{ env.CI_PROJECT_ID }}.iam.gserviceaccount.com"
+
+      - uses: 'google-github-actions/setup-gcloud@v1'
+        with:
+          version: '>= 363.0.0'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker --quiet ${{ env.IMAGE_REPO }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE_REPO}}/${{ env.IMAGE_PROJECT_ID }}/${{ env.APP }}:${{steps.extract_branch.outputs.branch}}-${{steps.vars.outputs.sha_short}}
+          #cache-from: type=registry,ref=${{ env.IMAGE_REPO }}/${{ env.IMAGE_PROJECT_ID }}/${{ env.APP }}:buildcache
+          #cache-to: type=registry,ref=${{ env.IMAGE_REPO }}/${{ env.IMAGE_PROJECT_ID }}/${{ env.APP }}:buildcache,mode=max
+
+  deploy:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    needs: buildimage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/821212598043/locations/global/workloadIdentityPools/github-pool/providers/gh-provider'
+          service_account: 'github-sa@cognosys-staging.iam.gserviceaccount.com'
+
+      - uses: 'google-github-actions/setup-gcloud@v1'
+        with:
+          version: '>= 363.0.0'
+
+      - name: 'deploy version to cloud run'
+        uses: 'google-github-actions/deploy-cloudrun@v1'
+        with:
+          service: ${{env.APP}}-${{steps.extract_branch.outputs.branch}}
+          image: ${{ env.IMAGE_REPO }}/${{ env.IMAGE_PROJECT_ID }}/${{ env.APP }}:${{steps.extract_branch.outputs.branch}}-${{steps.vars.outputs.sha_short}}
+          project_id:  ${{ env.DEV_PROJECT_ID }}
+          region: ${{ env.REGION }}
+          #secrets: |
+          #  /usr/src/app/config/.env=${{ env.DOTENV_SECRET_NAME }}:latest
+          flags: '--service-account ${{ env.CLOUD_RUN_SERVICE_ACCOUNT }} --execution-environment gen2 --concurrency ${{ env.CLOUD_RUN_CONCURRENCY }} --memoy ${{ env.CLOUD_RUN_MEM }} --cpu ${{ env.CLOUD_RUN_VCPU }}'

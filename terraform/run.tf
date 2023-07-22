@@ -1,3 +1,8 @@
+resource "google_service_account" "run_sa_dev" {
+    project = module.dev_project.project_id
+    account_id = "myapp-sa"
+}
+
 resource "google_service_account" "run_sa_staging" {
     project = module.staging_project.project_id
     account_id = "myapp-sa"
