@@ -3,6 +3,12 @@ resource "google_service_account" "cloud_deploy_agent_ci" {
     account_id = "cloud-deploy-agent"
 }
 
+resource "google_project_iam_member" "github_actions_clouddeploy" {
+    project = module.ci_project.project_id
+    member = format("serviceAccount:%s", google_service_account.github_sa.email)
+    role = "roles/clouddeploy.operator"
+}
+
 resource "google_project_iam_member" "cloud_deploy_agent_ci_jobrunner" {
     project = module.ci_project.project_id
     member = format("serviceAccount:%s", google_service_account.cloud_deploy_agent_ci.email)

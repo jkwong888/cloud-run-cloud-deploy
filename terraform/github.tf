@@ -29,3 +29,4 @@ resource "google_service_account_iam_member" "github_sa_wi" {
     role = "roles/iam.workloadIdentityUser"
     member = "principalSet://iam.googleapis.com/projects/${module.ci_project.number}/locations/global/workloadIdentityPools/${google_iam_workload_identity_pool.github.workload_identity_pool_id}/attribute.repository_owner/jkwong888"
 }
+
