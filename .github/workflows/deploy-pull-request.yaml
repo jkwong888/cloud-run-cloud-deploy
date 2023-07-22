@@ -3,6 +3,9 @@ name: deploy preview environment
 on:
   pull_request:
     types: [ opened, synchronize ]
+    paths:
+      - 'backend/**'
+      - 'manifests/**'
     branches:
       - 'main'
 
