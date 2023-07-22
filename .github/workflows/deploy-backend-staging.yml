@@ -90,4 +90,4 @@ jobs:
           region: '${{ env.REGION }}'
           description: '${{ env.GITHUB_COMMIT_MSG }}'
           skaffold_file: 'skaffold.yaml'
-          images: 'app=${{ env.IMAGE_REPO }}/${{ env.PROJECT_ID }}/${{ env.APP }}:${{steps.vars.outputs.sha_short}}'
+          images: 'app=${{ env.IMAGE_REPO }}/${{ env.REGISTRY_PROJECT_ID }}/${{ env.APP }}:${{steps.vars.outputs.sha_short}}'

@@ -30,3 +30,20 @@ resource "google_service_account_iam_member" "github_sa_wi" {
     member = "principalSet://iam.googleapis.com/projects/${module.ci_project.number}/locations/global/workloadIdentityPools/${google_iam_workload_identity_pool.github.workload_identity_pool_id}/attribute.repository_owner/jkwong888"
 }
 
+resource "google_project_iam_member" "github_actions_clouddeploy" {
+    project = module.ci_project.project_id
+    member = format("serviceAccount:%s", google_service_account.github_sa.email)
+    role = "roles/clouddeploy.operator"
+}
+
+resource "google_project_iam_member" "github_actions_storage_admin" {
+    project = module.ci_project.project_id
+    member = format("serviceAccount:%s", google_service_account.github_sa.email)
+    role = "roles/storage.admin"
+}
+
+resource "google_service_account_iam_member" "github_sa_cloud_deploy_agent_user" {
+    service_account_id = google_service_account.cloud_deploy_agent_ci.id
+    role = "roles/iam.serviceAccountUser"
+    member = "serviceAccount:${google_service_account.github_sa.email}"
+}
