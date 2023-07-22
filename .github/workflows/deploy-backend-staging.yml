@@ -1,0 +1,93 @@
+name: build push image
+
+on:
+  push:
+    branches:
+      - 'main'
+
+env:
+  REGISTRY_PROJECT_ID: jkwng-images
+  GAR_LOCATION: us-central1 # TODO: update Artifact Registry location
+  REGION: us-central1 # TODO: update Cloud Run service region
+  IMAGE_REPO: gcr.io
+  APP: backend
+
+jobs:
+  buildbackendimage:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1033541999083/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: 'github-actions@jkwng-clouddeploy-ci-f112.iam.gserviceaccount.com'
+
+      - uses: 'google-github-actions/setup-gcloud@v1'
+        with:
+          version: '>= 363.0.0'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker --quiet ${{ env.IMAGE_REPO }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: backend
+          push: true
+          tags: ${{ env.IMAGE_REPO }}/${{ env.REGISTRY_PROJECT_ID }}/${{ env.APP }}:${{steps.vars.outputs.sha_short}}
+          cache-from: type=registry,ref=${{ env.IMAGE_REPO }}/${{ env.REGISTRY_PROJECT_ID }}/${{ env.APP }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_REPO }}/${{ env.PROJECT_ID }}/${{ env.APP }}:buildcache,mode=max
+
+  deploy:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    needs: buildbackendimage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1033541999083/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: 'github-actions@jkwng-clouddeploy-ci-f112.iam.gserviceaccount.com'
+
+      - uses: 'google-github-actions/setup-gcloud@v1'
+        with:
+          version: '>= 363.0.0'
+
+      - name: 'Create release name'
+        run: |-
+          echo "RELEASE_NAME=${{ env.APP }}-${GITHUB_SHA::7}-${GITHUB_RUN_NUMBER}" >> ${GITHUB_ENV}
+
+      - name: 'Create Cloud Deploy release'
+        uses: 'google-github-actions/create-cloud-deploy-release@v0'
+        with:
+          delivery_pipeline: '${{ env.APP }}'
+          name: '${{ env.RELEASE_NAME }}'
+          region: '${{ env.REGION }}'
+          description: '${{ env.GITHUB_COMMIT_MSG }}'
+          skaffold_file: 'skaffold.yaml'
+          images: 'app=${{ env.IMAGE_REPO }}/${{ env.PROJECT_ID }}/${{ env.APP }}:${{steps.vars.outputs.sha_short}}'

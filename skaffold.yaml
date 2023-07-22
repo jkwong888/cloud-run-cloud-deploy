@@ -1,0 +1,28 @@
+apiVersion: skaffold/v3alpha1
+kind: Config
+metadata: 
+  name: myapp
+build:
+  platforms: ["linux/amd64"]
+  tagPolicy:
+    gitCommit: {}
+  artifacts:
+    - image: gcr.io/jkwng-images/cd-backend
+      context: .
+      docker:
+        cacheFrom:
+        - gcr.io/jkwng-images/cd-backend
+  local:
+    useBuildkit: true
+    push: true
+profiles:
+- name: staging 
+  manifests:
+    rawYaml:
+    - manifests/deploy-staging.yaml
+- name: prod
+  manifests:
+    rawYaml:
+    - manifests/deploy-prod.yaml
+deploy:
+  cloudrun: {}
