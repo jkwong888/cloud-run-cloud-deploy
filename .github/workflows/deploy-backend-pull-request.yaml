@@ -58,7 +58,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: backend 
           push: true
           tags: ${{ env.IMAGE_REPO}}/${{ env.IMAGE_PROJECT_ID }}/${{ env.APP }}:${{steps.extract_branch.outputs.branch}}-${{steps.vars.outputs.sha_short}}
           #cache-from: type=registry,ref=${{ env.IMAGE_REPO }}/${{ env.IMAGE_PROJECT_ID }}/${{ env.APP }}:buildcache
