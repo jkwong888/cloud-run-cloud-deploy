@@ -2,6 +2,9 @@ name: build push image
 
 on:
   push:
+    paths:
+      - 'backend/**'
+      - 'manifests/**'
     branches:
       - 'main'
 
