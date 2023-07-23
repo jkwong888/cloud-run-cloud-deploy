@@ -3,7 +3,6 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient();
 const app: Application = express()
-
 const port: number = Number(process.env.PORT || 3001);
 
 app.get('/toto', (req: Request, res: Response) => {
