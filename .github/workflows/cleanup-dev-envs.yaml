@@ -1,0 +1,45 @@
+name: cleanup preview environments
+
+on: 
+  delete
+
+env:
+  IMAGE_PROJECT_ID: jkwng-images 
+  IMAGE_REPO: gcr.io
+  DEV_PROJECT_ID: jkwng-clouddeploy-dev-f112
+  CI_PROJECT_ID: jkwng-clouddeploy-ci-f112
+  REGION: us-central1 # TODO: update Cloud Run service region
+  APP: backend
+
+jobs:
+  cleanup_dev:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    if: github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clean up
+        run: |
+          echo "Clean up for branch ${{ github.event.ref }}"
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1033541999083/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: "github-actions@${{ env.CI_PROJECT_ID }}.iam.gserviceaccount.com"
+
+      - uses: 'google-github-actions/setup-gcloud@v1'
+        with:
+          version: '>= 363.0.0'
+
+      - name: 'cleanup cloud run service'
+        uses: 'actions-hub/gcloud@master'
+        id: 'cleanup'
+        env:
+          PROJECT_ID: ${{ env.DEV_PROJECT_ID }}
+          CLOUDSDK_AUTH_ACCESS_TOKEN: '${{ steps.auth.outputs.access_token }}'
+        with:
+          args: 'run services delete ${{ env.APP}}-${{ github.event.ref }} --region ${{ env.REGION }} --async'
