@@ -27,7 +27,7 @@ app.listen(port, "0.0.0.0", function () {
  */
 function signalHandler(_signal: any) {
     // do some stuff here
-    process.exit()
+    process.exit();
 }
 
 process.on('SIGINT', signalHandler)
