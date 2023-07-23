@@ -101,7 +101,7 @@ jobs:
         uses: 'google-github-actions/deploy-cloudrun@v1'
         id: 'deploy'
         with:
-          service: ${{env.APP}}-${{steps.extract_branch.outputs.branch}}
+          service: ${{ env.APP }}-${{ steps.extract_branch.outputs.branch }}
           image: ${{ env.IMAGE_REPO }}/${{ env.IMAGE_PROJECT_ID }}/${{ env.APP }}:${{steps.extract_branch.outputs.branch}}-${{steps.vars.outputs.sha_short}}
           project_id:  ${{ env.DEV_PROJECT_ID }}
           region: ${{ env.REGION }}
@@ -114,7 +114,7 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            github.issues.createComment({
+            github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
