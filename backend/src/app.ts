@@ -31,5 +31,5 @@ function signalHandler(_signal: any) {
 }
 
 process.on('SIGINT', signalHandler);
-process.on('SIGTERM', signalHandler)
+process.on('SIGTERM', signalHandler);
 process.on('SIGQUIT', signalHandler)
