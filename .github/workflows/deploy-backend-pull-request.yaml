@@ -89,7 +89,7 @@ jobs:
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/821212598043/locations/global/workloadIdentityPools/github-pool/providers/gh-provider'
-          service_account: 'github-sa@cognosys-staging.iam.gserviceaccount.com'
+          service_account: "github-actions@${{ env.CI_PROJECT_ID }}.iam.gserviceaccount.com"
 
       - uses: 'google-github-actions/setup-gcloud@v1'
         with:

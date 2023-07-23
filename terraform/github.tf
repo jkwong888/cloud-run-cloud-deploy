@@ -53,3 +53,9 @@ resource "google_service_account_iam_member" "github_sa_cloud_deploy_agent_user"
     role = "roles/iam.serviceAccountUser"
     member = "serviceAccount:${google_service_account.github_sa.email}"
 }
+
+resource "google_service_account_iam_member" "github_sa_cloud_run_dev_user" {
+    service_account_id = google_service_account.run_sa_dev.id
+    role = "roles/iam.serviceAccountUser"
+    member = "serviceAccount:${google_service_account.github_sa.email}"
+}
