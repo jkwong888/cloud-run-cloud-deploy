@@ -44,7 +44,7 @@ resource "google_project_iam_member" "github_actions_storage_admin" {
 
 resource "google_project_iam_member" "github_actions_cloudrun_admin" {
     project = module.dev_project.project_id
-    member = format("serviceAccount:%s", google_service_account.github_sa.email)
+    member = "serviceAccount:${google_service_account.github_sa.email}"
     role = "roles/run.admin"
 }
 
