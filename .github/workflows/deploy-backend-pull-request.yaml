@@ -109,6 +109,15 @@ jobs:
           #  /usr/src/app/config/.env=${{ env.DOTENV_SECRET_NAME }}:latest
           flags: '--service-account ${{ env.CLOUD_RUN_SERVICE_ACCOUNT }} --execution-environment gen2 --concurrency ${{ env.CLOUD_RUN_CONCURRENCY }} --memory ${{ env.CLOUD_RUN_MEM }} --cpu ${{ env.CLOUD_RUN_VCPU }} --port ${{ env.CLOUD_RUN_PORT }}'
 
+      - name: 'ensure cloud run is public'
+        uses: 'actions-hub/gcloud@master'
+        id: 'policy'
+        env:
+          PROJECT_ID: ${{ env.DEV_PROJECT_ID }}
+          CLOUDSDK_AUTH_ACCESS_TOKEN: '${{ steps.auth.outputs.access_token }}'
+        with:
+          args: 'run services add-iam-policy-binding ${{ env.APP }}-${{ steps.extract_branch.outputs.branch }} --member="allUsers" --role="roles/run.invoker" --region ${{ env.REGION }}'
+
       - name: 'pull request comment'
         uses: actions/github-script@v6
         with:
