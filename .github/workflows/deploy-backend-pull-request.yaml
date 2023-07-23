@@ -17,6 +17,7 @@ env:
   CLOUD_RUN_CONCURRENCY: 20
   CLOUD_RUN_VCPU: 1
   CLOUD_RUN_MEM: 2G
+  CLOUD_RUN_PORT: 8080
 
 jobs:
   buildimage:
@@ -96,6 +97,7 @@ jobs:
 
       - name: 'deploy version to cloud run'
         uses: 'google-github-actions/deploy-cloudrun@v1'
+        id: 'deploy'
         with:
           service: ${{env.APP}}-${{steps.extract_branch.outputs.branch}}
           image: ${{ env.IMAGE_REPO }}/${{ env.IMAGE_PROJECT_ID }}/${{ env.APP }}:${{steps.extract_branch.outputs.branch}}-${{steps.vars.outputs.sha_short}}
@@ -103,4 +105,16 @@ jobs:
           region: ${{ env.REGION }}
           #secrets: |
           #  /usr/src/app/config/.env=${{ env.DOTENV_SECRET_NAME }}:latest
-          flags: '--service-account ${{ env.CLOUD_RUN_SERVICE_ACCOUNT }} --execution-environment gen2 --concurrency ${{ env.CLOUD_RUN_CONCURRENCY }} --memory ${{ env.CLOUD_RUN_MEM }} --cpu ${{ env.CLOUD_RUN_VCPU }}'
+          flags: '--service-account ${{ env.CLOUD_RUN_SERVICE_ACCOUNT }} --execution-environment gen2 --concurrency ${{ env.CLOUD_RUN_CONCURRENCY }} --memory ${{ env.CLOUD_RUN_MEM }} --cpu ${{ env.CLOUD_RUN_VCPU }} --port ${{ env.CLOUD_RUN_PORT }}'
+
+      - name: 'pull request comment'
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Preview URL: ${{steps.deploy.outputs.url}}'
+            })
