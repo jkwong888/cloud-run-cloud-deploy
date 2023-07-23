@@ -41,4 +41,4 @@ jobs:
         env:
           CLOUDSDK_AUTH_ACCESS_TOKEN: '${{ steps.auth.outputs.access_token }}'
         with:
-          args: 'run services delete ${{ env.APP}}-${{ github.event.ref }} --region ${{ env.REGION }} --project ${{ env.DEV_PROJECT_ID }} --async'
+          args: 'run services delete ${{ env.APP}}-${{ github.event.ref }} --region ${{ env.REGION }} --project ${{ env.DEV_PROJECT_ID }} --async --quiet'
