@@ -69,6 +69,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+      issues: 'write'
     needs: buildimage
     runs-on: ubuntu-latest
     steps:
