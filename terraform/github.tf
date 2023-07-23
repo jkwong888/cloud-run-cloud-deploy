@@ -42,6 +42,12 @@ resource "google_project_iam_member" "github_actions_storage_admin" {
     role = "roles/storage.admin"
 }
 
+resource "google_project_iam_member" "github_actions_cloudrun_admin" {
+    project = module.dev_project.project_id
+    member = format("serviceAccount:%s", google_service_account.github_sa.email)
+    role = "roles/run.admin"
+}
+
 resource "google_service_account_iam_member" "github_sa_cloud_deploy_agent_user" {
     service_account_id = google_service_account.cloud_deploy_agent_ci.id
     role = "roles/iam.serviceAccountUser"
