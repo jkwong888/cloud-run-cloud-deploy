@@ -12,6 +12,10 @@ app.get('/toto', (req: Request, res: Response) => {
 app.get('/hello', (req: Request, res: Response) => {
     res.send('Hello toto');
 });
+app.get('/hello2', (req: Request, res: Response) => {
+    res.send('Hello toto');
+});
+
 
 app.listen(port, "0.0.0.0", function () {
     console.log(`App is listening on port ${port} !`)

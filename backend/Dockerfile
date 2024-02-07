@@ -39,7 +39,7 @@ FROM runner-base AS runner
 WORKDIR /usr/src/app
 ENV NODE_ENV production
 
-RUN apk add --no-cache libc6-compat openssl1.1-compat
+RUN apk add --no-cache libc6-compat # openssl1.1-compat
 
 RUN \
   addgroup --system --gid 1001 nodejs; \

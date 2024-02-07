@@ -1,0 +1,43 @@
+apiVersion: skaffold/v4beta2
+kind: Config
+
+build:
+  #local:
+  #  push: true # <- We need to push the images so Cloud Run can deploy them
+  googleCloudBuild: 
+    projectId: jkwng-clouddeploy-ci-f112
+
+  platforms: ["linux/amd64"] # <- Specific platform supported by Cloud Run
+
+  artifacts:
+    - image: gcr.io/jkwng-images/cloud-run-backend # <- Should match the image name in the Cloud Run service.yaml
+      docker:
+        cacheFrom:
+        - gcr.io/jkwng-images/cloud-run-backend
+        dockerfile: ./Dockerfile
+
+profiles:
+- name: staging 
+  manifests:
+    rawYaml:
+    - ./manifests/deploy-staging.yaml
+  deploy:
+    cloudrun: {}
+
+
+- name: prod
+  manifests:
+    rawYaml:
+    - ./manifests/deploy-prod.yaml
+  deploy:
+    cloudrun: {}
+
+
+deploy:
+  cloudrun:
+    projectid: jkwng-clouddeploy-dev-f112 
+    region: us-central1
+
+manifests:
+  rawYaml:
+    - manifests/cloud-run-service.yaml

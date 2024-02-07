@@ -1,13 +1,16 @@
+# cloud run service account in dev
 resource "google_service_account" "run_sa_dev" {
     project = module.dev_project.project_id
     account_id = "myapp-sa"
 }
 
+# cloud run service account in staging
 resource "google_service_account" "run_sa_staging" {
     project = module.staging_project.project_id
     account_id = "myapp-sa"
 }
 
+# cloud run service account in prod
 resource "google_service_account" "run_sa_prod" {
     project = module.prod_project.project_id
     account_id = "myapp-sa"
